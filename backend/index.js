@@ -121,6 +121,8 @@ async function analyzeArticle(article) {
         console.log(`Answers: ${v.answers.join(', ')}`);
         console.log(`Misinformation Index: ${v.misinformationIndex}`);
     });
+
+    return finalData;
 }
 
 // Express server setup
