@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
+const cors = require('cors');
 
 dotenv.config();
 const app = express();
@@ -128,21 +129,21 @@ async function analyzeArticle(article) {
     };
 
     // Save the JSON object to a file
-    await fs.writeFile('misinformation_analysis.json', JSON.stringify(finalData, null, 2));
+    // await fs.writeFile('misinformation_analysis.json', JSON.stringify(finalData, null, 2));
 
-    console.log("Analysis complete. Results saved to misinformation_analysis.json");
+    // console.log("Analysis complete. Results saved to misinformation_analysis.json");
 
-    // Still log the results to console for immediate viewing
-    console.log("\nQuestions:");
-    questions.forEach((q, i) => console.log(`${i + 1}. ${q}`));
+    // // Still log the results to console for immediate viewing
+    // console.log("\nQuestions:");
+    // questions.forEach((q, i) => console.log(`${i + 1}. ${q}`));
 
-    console.log("\nVersions, Answers, and Misinformation Indices:");
-    finalData.versions.forEach(v => {
-        console.log(`\nVersion ${v.versionNumber}:`);
-        console.log(v.text);
-        console.log(`Answers: ${v.answers.join(', ')}`);
-        console.log(`Misinformation Index: ${v.misinformationIndex}`);
-    });
+    // console.log("\nVersions, Answers, and Misinformation Indices:");
+    // finalData.versions.forEach(v => {
+    //     console.log(`\nVersion ${v.versionNumber}:`);
+    //     console.log(v.text);
+    //     console.log(`Answers: ${v.answers.join(', ')}`);
+    //     console.log(`Misinformation Index: ${v.misinformationIndex}`);
+    // });
 
     return finalData;
 }
