@@ -1,8 +1,30 @@
-require('dotenv').config();
 const OpenAI = require('openai');
 const fs = require('fs').promises;
 const express = require('express');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+
+dotenv.config();
+const app = express();
+app.use(bodyParser.json());
+
+app.use(cors());
+
+app.post('/', async (req, res) => {
+    try {
+        const article = req.body.article || originalArticle;
+        const analysisResult = await analyzeArticle(article);
+        res.json(analysisResult);
+    } catch (error) {
+        console.error("Error processing article:", error);
+        res.status(500).json({ error: 'An error occurred while processing the article.' });
+    }
+});
+
+const PORT = 3000 | process.env.PORT;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -124,23 +146,3 @@ async function analyzeArticle(article) {
 
     return finalData;
 }
-
-// Express server setup
-const app = express();
-app.use(bodyParser.json());
-
-app.post('/', async (req, res) => {
-    try {
-        const article = req.body.article || originalArticle;
-        const analysisResult = await analyzeArticle(article);
-        res.json(analysisResult);
-    } catch (error) {
-        console.error("Error processing article:", error);
-        res.status(500).json({ error: 'An error occurred while processing the article.' });
-    }
-});
-
-const PORT = 3000 | process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
