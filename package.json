@@ -1,0 +1,13 @@
+{
+  "name": "my-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "npm run dev --prefix frontend",
+    "start:backend": "npm run dev --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}
