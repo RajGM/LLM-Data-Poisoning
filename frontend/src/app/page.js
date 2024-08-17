@@ -29,7 +29,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:3000', {
+        const response = await fetch(`${process.env.BACKEND_URL}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
