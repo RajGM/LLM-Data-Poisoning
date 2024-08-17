@@ -9,5 +9,9 @@
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.3",
+    "react-chartjs-2": "^5.2.0"
   }
 }
