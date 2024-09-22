@@ -4,7 +4,15 @@ import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre'; // Import the dagre layout
 import ReactFlow, { Background, Controls } from 'react-flow-renderer';
 import { useTable } from 'react-table';
-import { XYPlot, VerticalBarSeries, XAxis, YAxis } from 'react-vis';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 // Register dagre layout with cytoscape
 cytoscape.use(dagre);
@@ -202,19 +210,23 @@ const ArticleTable = ({ articles }) => {
   );
 };
 
-// Chart Component
+// Chart Component using Recharts
 const Chart = ({ nodeXAnswers }) => {
   const data = nodeXAnswers.map((answer, index) => ({
-    x: `Q${index + 1}`,
-    y: answer,
+    name: `Q${index + 1}`,
+    value: answer,
   }));
 
   return (
-    <XYPlot height={300} width={300} xType="ordinal">
-      <VerticalBarSeries data={data} />
-      <XAxis />
-      <YAxis />
-    </XYPlot>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="value" fill="#82ca9d" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
