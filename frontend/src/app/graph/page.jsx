@@ -157,14 +157,13 @@ export default function Home() {
           }}
         ></div>
       </>
-      {data?<Home2 data={data}/>:<></>}
+      {data ? <Home2 data={data} /> : <></>}
     </div>
   );
 }
 
-function Home2({data}) {
-
-  console.log("DATA:",data)
+function Home2({ data }) {
+  console.log("DATA:", data);
   const versions = data.nodes.map((node) => node.id);
   const misinformationIndexes = data.nodes.map(
     (node) => node.articles[0].misInformationIndexArray.I0
@@ -270,9 +269,15 @@ function NodeTable({ data }) {
               </th>
             ))}
             {/* Display Misinformation Index Headers */}
-            <th className="border border-gray-300 px-4 py-2">Misinformation Index I0</th>
-            <th className="border border-gray-300 px-4 py-2">Misinformation Index I1</th>
-            <th className="border border-gray-300 px-4 py-2">Misinformation Index I2</th>
+            <th className="border border-gray-300 px-4 py-2">
+              Misinformation Index I0
+            </th>
+            <th className="border border-gray-300 px-4 py-2">
+              Misinformation Index I1
+            </th>
+            <th className="border border-gray-300 px-4 py-2">
+              Misinformation Index I2
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -280,15 +285,17 @@ function NodeTable({ data }) {
           {data.nodes.map((node, nodeIdx) => (
             <tr key={node.id}>
               {/* Node ID */}
-              <td className="border border-gray-300 px-4 py-2">Node {node.id}</td>
-              
+              <td className="border border-gray-300 px-4 py-2">
+                Node {node.id}
+              </td>
+
               {/* Answers for Each Question */}
               {questions.map((question, qIdx) => (
                 <td key={qIdx} className="border border-gray-300 px-4 py-2">
                   {node.articles[0].nodeXAnswers[qIdx]}
                 </td>
               ))}
-              
+
               {/* Misinformation Index for the Node */}
               <td className="border border-gray-300 px-4 py-2">
                 {node.articles[0].misInformationIndexArray.I0}
@@ -331,21 +338,28 @@ function NodeExplanation({ node0 }) {
 
       {/* Explanation of Misinformation Index */}
       <div className="mb-4">
-        <h2 className="text-lg font-semibold">Misinformation Index Explanation:</h2>
+        <h2 className="text-lg font-semibold">
+          Misinformation Index Explanation:
+        </h2>
         <p className="ml-4">
           <strong>I0: </strong> NodeX vs Node0 (
           <code>calculateMisinformationIndex(nodeXAnswers, node0Answers)</code>)
         </p>
         <p className="ml-4">
           <strong>I1: </strong> Node0 vs Auditor (
-          <code>calculateMisinformationIndex(node0Answers, auditorAnswers)</code>)
+          <code>
+            calculateMisinformationIndex(node0Answers, auditorAnswers)
+          </code>
+          )
         </p>
         <p className="ml-4">
           <strong>I2: </strong> NodeX vs Auditor (
-          <code>calculateMisinformationIndex(nodeXAnswers, auditorAnswers)</code>)
+          <code>
+            calculateMisinformationIndex(nodeXAnswers, auditorAnswers)
+          </code>
+          )
         </p>
       </div>
     </div>
   );
 }
-
