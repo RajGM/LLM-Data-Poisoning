@@ -166,15 +166,15 @@ function Home2({ data }) {
   console.log("DATA:", data);
   const versions = data.nodes.map((node) => node.id);
   const misinformationIndexes = data.nodes.map(
-    (node) => node.articles[0].misInformationIndexArray.I0
+    (node) => node?.articles[0]?.misInformationIndexArray?.I0
   );
 
   const misinformationIndexes2 = data.nodes.map(
-    (node) => node.articles[0].misInformationIndexArray.I1
+    (node) => node?.articles[0]?.misInformationIndexArray?.I1
   );
 
   const misinformationIndexes3 = data.nodes.map(
-    (node) => node.articles[0].misInformationIndexArray.I2
+    (node) => node?.articles[0]?.misInformationIndexArray?.I2
   );
 
   const chartData = {
@@ -292,19 +292,19 @@ function NodeTable({ data }) {
               {/* Answers for Each Question */}
               {questions.map((question, qIdx) => (
                 <td key={qIdx} className="border border-gray-300 px-4 py-2">
-                  {node.articles[0].nodeXAnswers[qIdx]}
+                  {node?.articles[0]?.nodeXAnswers[qIdx]}
                 </td>
               ))}
 
               {/* Misinformation Index for the Node */}
               <td className="border border-gray-300 px-4 py-2">
-                {node.articles[0].misInformationIndexArray.I0}
+                {node?.articles[0]?.misInformationIndexArray.I0}
               </td>
               <td className="border border-gray-300 px-4 py-2">
-                {node.articles[0].misInformationIndexArray.I1}
+                {node?.articles[0]?.misInformationIndexArray.I1}
               </td>
               <td className="border border-gray-300 px-4 py-2">
-                {node.articles[0].misInformationIndexArray.I2}
+                {node?.articles[0]?.misInformationIndexArray.I2}
               </td>
             </tr>
           ))}
