@@ -27,8 +27,6 @@ ChartJS.register(
   Legend
 );
 
-import { Disclosure } from "@headlessui/react";
-
 //--------------------------------------------
 // Register dagre layout with cytoscape
 cytoscape.use(dagre);
@@ -48,11 +46,11 @@ export default function Home() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    // Initialize Cytoscape once when the component mounts
     const cy = cytoscape({
       container: document.getElementById("cy"),
       elements: [],
       style: [
+        // Define styles for the graph
         {
           selector: "node",
           style: {
@@ -80,17 +78,16 @@ export default function Home() {
         },
       ],
       layout: {
-        name: "dagre", // Use the dagre hierarchical layout
-        rankDir: "TB", // Top to Bottom hierarchical direction
-        nodeSep: 50, // Vertical spacing between nodes
-        edgeSep: 10, // Horizontal spacing between edges
-        rankSep: 100, // Spacing between ranks (levels of the hierarchy)
-        directed: true, // Directed edges
-        animate: true, // Animate the layout
+        name: "dagre",
+        rankDir: "TB",
+        nodeSep: 50,
+        edgeSep: 10,
+        rankSep: 100,
+        directed: true,
+        animate: true,
       },
     });
 
-    // Fetch graph data from the backend
     const fetchGraphData = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
@@ -102,8 +99,8 @@ export default function Home() {
 
         const data = await response.json();
         setData(data);
+        console.log("DATA:", data);
 
-        // Add nodes and edges from the fetched data
         const newNodes = data.nodes.map((node) => ({
           data: { id: `${node.id}`, label: `Node ${node.id}` },
         }));
@@ -116,10 +113,11 @@ export default function Home() {
           },
         }));
 
-        cy.add(newNodes);
-        cy.add(newEdges);
+        cy.batch(() => {
+          cy.add(newNodes);
+          cy.add(newEdges);
+        });
 
-        // Apply the hierarchical layout (dagre)
         cy.layout({
           name: "dagre",
           rankDir: "TB",
@@ -127,7 +125,7 @@ export default function Home() {
           edgeSep: 10,
           rankSep: 100,
           directed: true,
-          animate: true,
+          animate: false,
         }).run();
       } catch (error) {
         console.error("Error fetching graph data:", error);
@@ -136,34 +134,63 @@ export default function Home() {
 
     fetchGraphData();
 
-    // Clean up the Cytoscape instance on unmount
     return () => {
       cy.destroy();
     };
   }, []);
 
+  const ranges = [
+    [1, 15],
+    [16, 25],
+    [26, 35],
+  ];
+
   return (
     <div>
-      <>
-        <h1>Hierarchical Directed Acyclic Graph (DAG) Visualization</h1>
-        <button onClick={() => downloadJSON(data)}>Download Graph JSON</button>
-        <div
-          id="cy"
-          style={{
-            width: "100%",
-            height: "600px",
-            border: "1px solid #ccc",
-            marginTop: "20px",
-          }}
-        ></div>
-      </>
-      {data ? <Home2 data={data} /> : <></>}
+      <h1>Hierarchical Directed Acyclic Graph (DAG) Visualization</h1>
+      <button onClick={() => downloadJSON(data)}>Download Graph JSON</button>
+      <div
+        id="cy"
+        style={{
+          width: "100%",
+          height: "600px",
+          border: "1px solid #ccc",
+          marginTop: "20px",
+        }}
+      ></div>
+      {data &&
+        data.neighborRanges.map((range, index) => (
+          <ExpandableSection key={index} range={range} data={data} />
+        ))}
+    </div>
+  );
+}
+
+function ExpandableSection({ range, data }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Filter nodes within the range
+  const filteredData = {
+    ...data,
+    nodes: data.nodes.filter(
+      (node) => node.id >= range[0] && node.id <= range[1]
+    ),
+  };
+
+  return (
+    <div>
+      <h2
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{ cursor: "pointer" }}
+      >
+        {`Nodes ${range[0]} to ${range[1]} ${isExpanded ? "-" : "+"}`}
+      </h2>
+      {isExpanded && <Home2 data={filteredData} />}
     </div>
   );
 }
 
 function Home2({ data }) {
-  console.log("DATA:", data);
   const versions = data.nodes.map((node) => node.id);
   const misinformationIndexes = data.nodes.map(
     (node) => node?.articles[0]?.misInformationIndexArray?.I0
