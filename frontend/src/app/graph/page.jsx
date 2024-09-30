@@ -44,6 +44,36 @@ const downloadJSON = (data) => {
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const [activeTab, setActiveTab] = useState("same_agents"); // Default to "Same Agents"
+  const [activeSubTab, setActiveSubTab] = useState("crime-0.json"); // Default dataset
+
+  // Tab and Subtab data
+  const tabs = {
+    same_agents: [
+      "crime-0.json",
+      "education-0.json",
+      "education-1.json",
+      "education-2.json",
+      "helthcare-0.json",
+      "marketing-0.json",
+      "politics-0.json",
+      "politics-1.json",
+      "sports-0.json",
+      "technology-0.json",
+    ],
+    controlled_random: [
+      "crime-0.json",
+      "education-0.json",
+      "education-1.json",
+      "education-2.json",
+      "helthcare-0.json",
+      "marketing-0.json",
+      "politics-0.json",
+      "politics-1.json",
+      "sports-0.json",
+      "technology-0.json",
+    ],
+  };
 
   useEffect(() => {
     const cy = cytoscape({
@@ -89,13 +119,19 @@ export default function Home() {
     });
 
     const fetchGraphData = async () => {
+      console.log(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/${activeTab}/${activeSubTab}`
+      );
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/${activeTab}/${activeSubTab}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         const data = await response.json();
         setData(data);
@@ -125,7 +161,7 @@ export default function Home() {
           edgeSep: 10,
           rankSep: 100,
           directed: true,
-          animate: false,
+          animate: true,
         }).run();
       } catch (error) {
         console.error("Error fetching graph data:", error);
@@ -137,18 +173,66 @@ export default function Home() {
     return () => {
       cy.destroy();
     };
-  }, []);
+  }, [activeTab, activeSubTab]); // Refetch data when tab or subtab changes
 
-  const ranges = [
-    [1, 15],
-    [16, 25],
-    [26, 35],
-  ];
+  // Handlers for tab and subtab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setActiveSubTab(tabs[tab][0]); // Reset subtab to the first one
+  };
+
+  const handleSubTabChange = (subTab) => {
+    setActiveSubTab(subTab);
+  };
 
   return (
     <div>
       <h1>Hierarchical Directed Acyclic Graph (DAG) Visualization</h1>
+
+      <div className="flex space-x-4 mt-4">
+        {/* Tab Selector */}
+        <button
+          onClick={() => handleTabChange("same_agents")}
+          className={`px-4 py-2 rounded-md ${
+            activeTab === "sameAgents"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-700 text-gray-300"
+          } hover:bg-blue-600`}
+        >
+          Same Agents
+        </button>
+        <button
+          onClick={() => handleTabChange("controlled_random")}
+          className={`px-4 py-2 rounded-md ${
+            activeTab === "controlledRandom"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-700 text-gray-300"
+          } hover:bg-blue-600`}
+        >
+          Controlled Random
+        </button>
+      </div>
+
+      <div className="flex space-x-2 mt-4">
+        {/* Subtab Selector */}
+        {tabs[activeTab].map((subTab) => (
+          <button
+            key={subTab}
+            onClick={() => handleSubTabChange(subTab)}
+            className={`px-3 py-1 rounded-md ${
+              activeSubTab === subTab
+                ? "bg-green-500 text-white"
+                : "bg-gray-700 text-gray-300"
+            } hover:bg-green-600`}
+          >
+            {subTab}
+          </button>
+        ))}
+      </div>
+
       <button onClick={() => downloadJSON(data)}>Download Graph JSON</button>
+
+      {/* Graph Container */}
       <div
         id="cy"
         style={{
@@ -158,8 +242,12 @@ export default function Home() {
           marginTop: "20px",
         }}
       ></div>
+
+      {data && <NodeLineCharts data={data}/>}
+
+      {/* Expandable sections for neighbor ranges */}
       {data &&
-        data.neighborRanges.map((range, index) => (
+        data.neighborRanges?.map((range, index) => (
           <ExpandableSection key={index} range={range} data={data} />
         ))}
     </div>
@@ -192,15 +280,15 @@ function ExpandableSection({ range, data }) {
 
 function Home2({ data }) {
   const versions = data.nodes.map((node) => node.id);
-  const misinformationIndexes = data.nodes.map(
+  const misinformationIndexes = data.nodes?.map(
     (node) => node?.articles[0]?.misInformationIndexArray?.I0
   );
 
-  const misinformationIndexes2 = data.nodes.map(
+  const misinformationIndexes2 = data.nodes?.map(
     (node) => node?.articles[0]?.misInformationIndexArray?.I1
   );
 
-  const misinformationIndexes3 = data.nodes.map(
+  const misinformationIndexes3 = data.nodes?.map(
     (node) => node?.articles[0]?.misInformationIndexArray?.I2
   );
 
@@ -390,3 +478,102 @@ function NodeExplanation({ node0 }) {
     </div>
   );
 }
+
+
+//import { Line } from "react-chartjs-2";
+
+const NodeLineCharts = ({ data }) => {
+  // Map node IDs for chart labels
+  const nodeIds = data.nodes.map((node) => node.id);
+
+  // Extract Misinformation Index values for each node
+  const misinformationIndexesI0 = data.nodes.map(
+    (node) => node.articles[0]?.misInformationIndexArray?.I0
+  );
+  const misinformationIndexesI1 = data.nodes.map(
+    (node) => node.articles[0]?.misInformationIndexArray?.I1
+  );
+  const misinformationIndexesI2 = data.nodes.map(
+    (node) => node.articles[0]?.misInformationIndexArray?.I2
+  );
+
+  // Chart data for I0 (NodeX - Node0)
+  const chartDataI0 = {
+    labels: nodeIds,
+    datasets: [
+      {
+        label: "Misinformation Index I0 (NodeX - Node0)",
+        data: misinformationIndexesI0,
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+      },
+    ],
+  };
+
+  // Chart data for I1 (Node0 - Auditor)
+  const chartDataI1 = {
+    labels: nodeIds,
+    datasets: [
+      {
+        label: "Misinformation Index I1 (Node0 - Auditor)",
+        data: misinformationIndexesI1,
+        borderColor: "rgba(153, 102, 255, 1)",
+        backgroundColor: "rgba(153, 102, 255, 0.2)",
+      },
+    ],
+  };
+
+  // Chart data for I2 (NodeX - Auditor)
+  const chartDataI2 = {
+    labels: nodeIds,
+    datasets: [
+      {
+        label: "Misinformation Index I2 (NodeX - Auditor)",
+        data: misinformationIndexesI2,
+        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+      },
+    ],
+  };
+
+   // Chart options
+   const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // To allow custom height
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Misinformation Index vs Node ID",
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  return (
+    <div className="flex flex-col space-y-8 my-8">
+      {/* Chart for I0 */}
+      <div className="w-full h-96"> {/* Increase height */}
+        <Line data={chartDataI0} options={chartOptions} />
+      </div>
+
+      {/* Chart for I1 */}
+      <div className="w-full h-96"> {/* Increase height */}
+        <Line data={chartDataI1} options={chartOptions} />
+      </div>
+
+      {/* Chart for I2 */}
+      <div className="w-full h-96"> {/* Increase height */}
+        <Line data={chartDataI2} options={chartOptions} />
+      </div>
+    </div>
+  );
+
+
+};
