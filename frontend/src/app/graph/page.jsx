@@ -243,6 +243,8 @@ export default function Home() {
         }}
       ></div>
 
+      {/* {data && <FullAnalysis data={data}/>} */}
+
       {data && <NodeLineCharts data={data}/>}
 
       {/* Expandable sections for neighbor ranges */}
@@ -577,3 +579,126 @@ const NodeLineCharts = ({ data }) => {
 
 
 };
+
+function FullAnalysis({ data }) {
+  // Utility functions for DMI, MPR, etc.
+
+  // Step 1: Dynamic Misinformation Index (DMI) Calculation
+  const calculateDMI = (article) => {
+    const nodeXAnswers = article.nodeXAnswers;
+    const auditorAnswers = article.auditorAnswers;
+    const totalQuestions = nodeXAnswers.length;
+
+    let misinformationScore = 0;
+    for (let i = 0; i < totalQuestions; i++) {
+      misinformationScore += Math.abs(nodeXAnswers[i] - auditorAnswers[i]);
+    }
+    const DMI = misinformationScore / totalQuestions;
+    return DMI;
+  };
+
+  // Step 2: Misinformation Propagation Rate (MPR)
+  const calculateMPR = (sourceDMI, neighborDMI, numEdges) => {
+    return (neighborDMI - sourceDMI) / numEdges;
+  };
+
+  // Perform Full Calculations for all nodes
+  const performFullAnalysis = () => {
+    const DMIResults = data.nodes.map((node) =>
+      node.articles.map((article) => calculateDMI(article))
+    );
+
+    const MPRResults = data.edges.map((edge) => {
+      const sourceNode = data.nodes.find((node) => node.id === edge.source);
+      const targetNode = data.nodes.find((node) => node.id === edge.target);
+      const sourceDMI = calculateDMI(sourceNode.articles[0]);
+      const targetDMI = calculateDMI(targetNode.articles[0]);
+      return calculateMPR(sourceDMI, targetDMI, 1);
+    });
+
+    const taxonomyResults = DMIResults.map((dmi) => {
+      if (dmi === 1) return "Factual Error";
+      else if (dmi > 1 && dmi <= 4) return "Lie";
+      else if (dmi > 4) return "Propaganda";
+      return "Accurate";
+    });
+
+    return { DMIResults, MPRResults, taxonomyResults };
+  };
+
+  // Perform Analysis and get results
+  const { DMIResults, MPRResults, taxonomyResults } = performFullAnalysis();
+
+  // Step 3: Chart Configurations
+  const nodeIds = data.nodes.map((node) => node.id);
+  const chartDataDMI = {
+    labels: nodeIds,
+    datasets: [
+      {
+        label: "Dynamic Misinformation Index (DMI)",
+        data: DMIResults,
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+      },
+    ],
+  };
+
+  const chartDataMPR = {
+    labels: data.edges.map((edge) => `Edge ${edge.source}-${edge.target}`),
+    datasets: [
+      {
+        label: "Misinformation Propagation Rate (MPR)",
+        data: MPRResults,
+        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Misinformation Metrics",
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold">Full Misinformation Analysis</h2>
+
+      <div className="my-8">
+        <h3 className="text-lg font-semibold">Dynamic Misinformation Index (DMI)</h3>
+        <div className="w-full h-96">
+          <Line data={chartDataDMI} options={chartOptions} />
+        </div>
+      </div>
+
+      <div className="my-8">
+        <h3 className="text-lg font-semibold">Misinformation Propagation Rate (MPR)</h3>
+        <div className="w-full h-96">
+          <Line data={chartDataMPR} options={chartOptions} />
+        </div>
+      </div>
+
+      <div className="my-8">
+        <h3 className="text-lg font-semibold">Taxonomy Analysis</h3>
+        <ul>
+          {taxonomyResults.map((result, index) => (
+            <li key={index}>{`Node ${data.nodes[index].id}: ${result}`}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
