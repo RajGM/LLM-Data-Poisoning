@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "chartjs-plugin-annotation": "^3.0.1"
+  }
+}
